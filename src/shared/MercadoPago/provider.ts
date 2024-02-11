@@ -14,8 +14,8 @@ export default class MercadoPagoProvider {
 
     const payment = new Payment(client);
 
-    await payment
-      .create({
+    try {
+      const result = await payment.create({
         body: {
           transaction_amount: data.transaction_amount,
           token: client.accessToken,
@@ -29,53 +29,40 @@ export default class MercadoPagoProvider {
             email: data.payer.email,
           },
           additional_info: {
-            items: [
-              {
-                id: data.items.id,
-                title: data.items.title,
-                description: data.items.description,
-                picture_url: data.items.picture_url,
-                category_id: data.items.category_id,
-                quantity: data.items.quantity,
-                unit_price: data.items.unit_price,
-              },
-            ],
+            items: data.items,
             payer: {
               first_name: data.payer.name,
             },
           },
         },
-      })
-      .then((result) => {
-        // console.log(result.additional_info.items);
-        console.log(result);
-        return result;
-      })
-      .catch((error) => {
-        console.log(error);
-        throw new Error('Erro ao criar pagamento: ' + error.message);
       });
+
+      return result;
+    } catch (error) {
+      console.log(error);
+      throw new Error('Erro ao criar pagamento: ' + error.message);
+    }
   }
 }
 
 interface IRequest {
-  //issuer_id: number;
-  //installments: number;
   transaction_amount: number;
   description: string;
   payer: {
     email: string;
     name: string;
   };
-  items: {
-    id: string;
-    title: string;
-    description: string;
-    picture_url: string;
-    category_id: string;
-    quantity: number;
-    unit_price: number;
-  };
+  items: Items[];
+}
+
+interface Items {
+  id: string;
+  title: string;
+  description: string;
+  picture_url: string;
+  category_id: string;
+  quantity: number;
+  unit_price: number;
 }
 
 // {
