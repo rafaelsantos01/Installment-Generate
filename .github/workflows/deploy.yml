@@ -1,0 +1,31 @@
+name: Deploy API
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v2
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '21'
+
+  deploy:
+    needs: build
+    runs-on: self-hosted
+    steps:
+      - name: Pull image from docker hub
+        run: docker pull rafaelsantos15/installment-generator:latest
+
+      - name: Remove old docker container
+        run: docker rm -f installment-generator
+
+      - name: Run docker container
+        run: docker run -d -p 3001:3001 -e MP_ACCESS_TOKEN='${{secrets.MP_ACCESS_TOKEN}}' --name installment-generator rafaelsantos15/installment-generator
